@@ -1,0 +1,84 @@
+#!/bin/bash
+
+#defaults
+t=s
+i=1000000
+e=2000000
+s=100000
+k=10
+ARCH=`uname -m`
+
+function helps {
+	echo -n "USAGE: $0 <-t radixSortType> <-i number> <-e number> "
+	echo "<-s number> <-k number>"
+	echo "USAGE: $0 <-h>"
+	echo " -t : radix sort type (def: '$t') <'s'=serial|'p'=parallel>"
+	echo -n " -i : initial number of iterations (def: "
+	echo -n $i | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L'
+	echo ") <N_min>"
+	echo -n " -e : end number of iterations (def: "
+	echo -n $e | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L'
+	echo ") <N_max>"
+	echo -n " -s : step number of iterations (def: "
+	echo -n $s | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L'
+	echo ") <N_step>"
+	echo " -k : maximum digit of each iteration (def: $k) <1 < K < 10>"
+	echo -e "\tThis program loops radix sort program in a for indicated by"
+	echo -e "\tparameters for N with same K"
+	exit 0
+}
+
+function test {
+	t="serial"
+	[ $1 == "p" ] && t="parallel"
+	echo "Type = $t radix sort"
+	echo "  N  = from $2 to $3 each $4 step"
+	echo "  K  = $5"
+	for (( i=$2; i<=$3; i=i+$4 )); do
+		nice -n 19 ./${ARCH}/radix_sort_$t $i $5
+	done
+	exit 0
+}
+
+function is_int() {
+	return $(test “$@” -eq “$@” > /dev/null 2>&1);
+}
+
+FOUND=0
+while getopts "ht:i:e:s:k:" optname; do
+	case "$optname" in
+	"h"|"?")
+		helps
+	;;
+	"t")
+		case "$OPTARG" in
+		"p"|"s")
+			t=$OPTARG
+			FOUND=1
+		;;
+		esac
+	;;
+	"i"|"e"|"s"|"k")
+		[ -z $OPTARG ] && echo "ERROR: No input value for '$optname' parameter" && exit 1
+		if [[ "$OPTARG" = *[![:digit:]]* ]]; then
+			echo "ERROR: Positive integer required for '$optname' parameter"
+			exit 1
+		else
+			let ${optname}=$OPTARG
+			FOUND=1
+		fi
+		([ $k -gt 10 ] || [ $k -lt 1 ] ) && echo "ERROR: K ain't to be greater than 10 or lesser than 1" && exit 1
+	;;
+	*)
+		# Should not occur
+		echo "ERROR: Unknown error while processing options"
+		exit 1
+	;;
+	esac
+done
+if [ $FOUND -gt 0 ]; then
+	test $t $i $e $s $k
+else
+	helps
+fi
+

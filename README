@@ -1,0 +1,4 @@
+PARALLEL RADIX SORT
+Implementation of radix sort algorithm using OpenMP.
+This is a project made by Nicolàs Alejandro Di Risio and Danilo Sabato in a University Project in lessons Processor Architecture.
+

@@ -1,4 +1,8 @@
 PARALLEL RADIX SORT
 Implementation of radix sort algorithm using OpenMP.
-This is a project made by Nicolàs Alejandro Di Risio and Danilo Sabato in a University Project in lessons Processor Architecture.
+This is a project made by Nicolàs Alejandro Di Risio and Danilo Sabato in a
+University Project in lessons Processor Architecture.
+Makefile creates a directory with binary dependant to your architecture.
+If you have x86_64 it will create a direcotyr named x86_64 where it will
+create your specific binaries.
 

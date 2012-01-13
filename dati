@@ -6,11 +6,13 @@ i=1000000
 e=2000000
 s=100000
 k=10
+d=0
+c=100
 ARCH=`uname -m`
 
 function helps {
 	echo -n "USAGE: $0 <-t radixSortType> <-i number> <-e number> "
-	echo "<-s number> <-k number>"
+	echo "<-s number> <-k number> <-c number> <-d debug>"
 	echo "USAGE: $0 <-h>"
 	echo " -t : radix sort type (def: '$t') <'s'=serial|'p'=parallel>"
 	echo -n " -i : initial number of iterations (def: "
@@ -23,6 +25,8 @@ function helps {
 	echo -n $s | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L'
 	echo ") <N_step>"
 	echo " -k : maximum digit of each iteration (def: $k) <1 < K < 10>"
+	echo " -c : chunksize in parallel mode (def: $c)"
+	echo " -d : debug level (def: $d) <D >= 0>"
 	echo -e "\tThis program loops radix sort program in a for indicated by"
 	echo -e "\tparameters for N with same K"
 	exit 0
@@ -34,8 +38,11 @@ function test {
 	echo "Type = $t radix sort"
 	echo "  N  = from $2 to $3 each $4 step"
 	echo "  K  = $5"
+	echo "  D  = $6"
+	echo "  C  = $7"
+
 	for (( i=$2; i<=$3; i=i+$4 )); do
-		nice -n 19 ./${ARCH}/radix_sort_$t $i $5
+		nice -n 19 ./${ARCH}/radix_sort_$t $i $5 $6 $7
 	done
 	exit 0
 }
@@ -45,7 +52,7 @@ function is_int() {
 }
 
 FOUND=0
-while getopts "ht:i:e:s:k:" optname; do
+while getopts "ht:i:e:s:k:c:d:" optname; do
 	case "$optname" in
 	"h"|"?")
 		helps
@@ -58,7 +65,7 @@ while getopts "ht:i:e:s:k:" optname; do
 		;;
 		esac
 	;;
-	"i"|"e"|"s"|"k")
+	"i"|"e"|"s"|"k"|"c"|"d")
 		[ -z $OPTARG ] && echo "ERROR: No input value for '$optname' parameter" && exit 1
 		if [[ "$OPTARG" = *[![:digit:]]* ]]; then
 			echo "ERROR: Positive integer required for '$optname' parameter"
@@ -67,6 +74,7 @@ while getopts "ht:i:e:s:k:" optname; do
 			let ${optname}=$OPTARG
 			FOUND=1
 		fi
+		([ $c -lt 1 ] ) && echo "ERROR: C ain't to be lesser than 1" && exit 1
 		([ $k -gt 10 ] || [ $k -lt 1 ] ) && echo "ERROR: K ain't to be greater than 10 or lesser than 1" && exit 1
 	;;
 	*)
@@ -77,7 +85,7 @@ while getopts "ht:i:e:s:k:" optname; do
 	esac
 done
 if [ $FOUND -gt 0 ]; then
-	test $t $i $e $s $k
+	test $t $i $e $s $k $d $c
 else
 	helps
 fi

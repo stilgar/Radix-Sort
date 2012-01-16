@@ -171,6 +171,7 @@ int main(int argc, char **argv)
         if (debug > 0) {
 		printf("DEBUG LEVEL: %i\n", debug);
 		printf("CHUNKSIZE  : %i\n", chunksize);
+		printf("THREADS    : %i\n", omp_get_num_procs());
 	}
 
 	/* allocation of memory */
